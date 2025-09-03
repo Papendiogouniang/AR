@@ -1,4 +1,4 @@
-import React from 'react'; // React import is required for JSX but not directly referenced
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
@@ -111,7 +111,7 @@ function App() {
                   <CreateSlide />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/slides/edit/:id" element={
+              <Route path="/admin/slides/:id/edit" element={
                 <ProtectedRoute adminOnly>
                   <EditSlide />
                 </ProtectedRoute>

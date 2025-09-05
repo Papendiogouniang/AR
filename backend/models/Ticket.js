@@ -93,7 +93,7 @@ const ticketSchema = new mongoose.Schema({
 });
 
 // Index pour les performances
-ticketSchema.index({ ticketId: 1 });
+ticketSchema.index({ ticketId: 1 }, { unique: true });
 ticketSchema.index({ userId: 1 });
 ticketSchema.index({ eventId: 1 });
 ticketSchema.index({ paymentId: 1 });

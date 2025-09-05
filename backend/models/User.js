@@ -75,8 +75,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // Index pour les recherches
-userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ phone: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 
 // Hash password before saving

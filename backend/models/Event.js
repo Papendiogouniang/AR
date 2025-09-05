@@ -78,6 +78,11 @@ const eventSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   tags: [{
     type: String,
     trim: true

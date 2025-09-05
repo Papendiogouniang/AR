@@ -15,11 +15,14 @@ import {
   Trophy,
   Mic,
   Palette,
-  ChevronLeft,
-  ChevronRight
+  Heart,
+  Globe,
+  Zap
 } from 'lucide-react';
 import { apiHelpers } from '../services/api';
 import { Event, Slide } from '../types';
+import HeroSlider from '../components/Home/HeroSlider';
+import EventCard from '../components/UI/EventCard';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 import Button from '../components/UI/Button';
 
@@ -28,7 +31,6 @@ const Home: React.FC = () => {
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -45,16 +47,6 @@ const Home: React.FC = () => {
     fetchData();
   }, [selectedCategory]);
 
-  useEffect(() => {
-    // Auto-slide carousel
-    if (slides.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [slides.length]);
-
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -64,7 +56,7 @@ const Home: React.FC = () => {
       const eventsResponse = await apiHelpers.getEvents(eventsParams);
       
       if (eventsResponse.success) {
-        const allEvents = eventsResponse.data.events || [];
+        const allEvents = eventsResponse.data || [];
         setEvents(allEvents);
         setFeaturedEvents(allEvents.filter((event: Event) => event.isFeatured));
       }
@@ -90,7 +82,7 @@ const Home: React.FC = () => {
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.location.name.toLowerCase().includes(searchTerm.toLowerCase())
+    event.location?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatDate = (dateString: string) => {
@@ -99,23 +91,6 @@ const Home: React.FC = () => {
       month: 'short',
       year: 'numeric'
     });
-  };
-
-  const formatPrice = (price: number, currency: string) => {
-    return `${price.toLocaleString('fr-FR')} ${currency}`;
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const categoryData = categories.find(cat => cat.value === category);
-    return categoryData?.icon || Star;
-  };
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
   if (loading) {
@@ -129,129 +104,7 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section avec Carousel de Slides */}
-      {slides.length > 0 ? (
-        <section className="relative h-[600px] overflow-hidden">
-          {slides.map((slide, index) => (
-            <div
-              key={slide._id}
-              className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-                index === currentSlide ? 'translate-x-0' : 
-                index < currentSlide ? '-translate-x-full' : 'translate-x-full'
-              }`}
-              style={{ backgroundColor: slide.backgroundColor }}
-            >
-              <div className="relative h-full">
-                {slide.image?.url && (
-                  <img
-                    src={slide.image.url}
-                    alt={slide.title}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                
-                <div className="absolute inset-0 flex items-center">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                    <div className={`max-w-2xl ${
-                      slide.position === 'center' ? 'mx-auto text-center' :
-                      slide.position === 'right' ? 'ml-auto text-right' : 'text-left'
-                    }`}>
-                      <h1 
-                        className="text-4xl md:text-6xl font-bold mb-6"
-                        style={{ color: slide.textColor }}
-                      >
-                        {slide.title}
-                      </h1>
-                      {slide.subtitle && (
-                        <p 
-                          className="text-xl md:text-2xl mb-4 opacity-90"
-                          style={{ color: slide.textColor }}
-                        >
-                          {slide.subtitle}
-                        </p>
-                      )}
-                      {slide.description && (
-                        <p 
-                          className="text-lg mb-8 opacity-80"
-                          style={{ color: slide.textColor }}
-                        >
-                          {slide.description}
-                        </p>
-                      )}
-                      {slide.buttonText && slide.buttonLink && (
-                        <Link
-                          to={slide.buttonLink}
-                          className="inline-flex items-center px-8 py-4 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105"
-                        >
-                          {slide.buttonText}
-                          <ArrowRight className="ml-2 w-5 h-5" />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Navigation Arrows */}
-          {slides.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </>
-          )}
-
-          {/* Slide Indicators */}
-          {slides.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    index === currentSlide ? 'bg-yellow-500' : 'bg-white bg-opacity-50'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      ) : (
-        // Hero par défaut si pas de slides
-        <section className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 text-white">
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div className="text-center">
-              <div className="text-6xl mb-6">🎟️</div>
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Bienvenue sur <span className="text-yellow-300">Kanzey.co</span>
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-                La première plateforme sénégalaise de billetterie événementielle. 
-                Découvrez et participez aux meilleurs événements culturels du Sénégal.
-              </p>
-              <Link
-                to="/events"
-                className="inline-flex items-center px-8 py-4 bg-white text-yellow-600 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
-              >
-                Découvrir les événements
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+      <HeroSlider slides={slides} />
 
       {/* Catégories */}
       <section className="py-16 bg-white">
@@ -305,91 +158,9 @@ const Home: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredEvents.slice(0, 6).map((event) => {
-                const CategoryIcon = getCategoryIcon(event.category);
-                return (
-                  <div key={event._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
-                    <div className="relative">
-                      {event.primaryImage ? (
-                        <img
-                          src={event.primaryImage}
-                          alt={event.title}
-                          className="w-full h-48 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-48 bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center">
-                          <CategoryIcon className="w-16 h-16 text-white" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-medium flex items-center">
-                          <Star className="w-3 h-3 mr-1" />
-                          À la une
-                        </span>
-                      </div>
-                      
-                      <div className="absolute top-4 right-4">
-                        <span className="bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm capitalize">
-                          {event.category}
-                        </span>
-                      </div>
-
-                      {event.availableTickets < 10 && event.availableTickets > 0 && (
-                        <div className="absolute bottom-4 right-4">
-                          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium animate-pulse">
-                            Plus que {event.availableTickets}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-                        {event.title}
-                      </h3>
-                      
-                      {event.shortDescription && (
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                          {event.shortDescription}
-                        </p>
-                      )}
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <Calendar className="w-4 h-4 mr-2 text-yellow-500" />
-                          {formatDate(event.date)}
-                        </div>
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <MapPin className="w-4 h-4 mr-2 text-yellow-500" />
-                          {event.location.name}, {event.location.city}
-                        </div>
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <Users className="w-4 h-4 mr-2 text-yellow-500" />
-                          {event.availableTickets > 0 
-                            ? `${event.availableTickets} places disponibles`
-                            : 'Complet'
-                          }
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-yellow-600">
-                          {formatPrice(event.price, event.currency)}
-                        </span>
-                        <Link to={`/events/${event._id}`}>
-                          <Button 
-                            variant={event.availableTickets > 0 ? "primary" : "outline"}
-                            size="sm"
-                          >
-                            {event.availableTickets > 0 ? 'Acheter' : 'Voir détails'}
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {featuredEvents.slice(0, 6).map((event) => (
+                <EventCard key={event._id} event={event} featured />
+              ))}
             </div>
           </div>
         </section>
@@ -450,79 +221,9 @@ const Home: React.FC = () => {
 
           {filteredEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredEvents.slice(0, 8).map((event) => {
-                const CategoryIcon = getCategoryIcon(event.category);
-                return (
-                  <div key={event._id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105">
-                    <div className="relative">
-                      {event.primaryImage ? (
-                        <img
-                          src={event.primaryImage}
-                          alt={event.title}
-                          className="w-full h-40 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-40 bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center">
-                          <CategoryIcon className="w-12 h-12 text-white" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute top-3 right-3">
-                        <span className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs capitalize">
-                          {event.category}
-                        </span>
-                      </div>
-
-                      {event.isFeatured && (
-                        <div className="absolute top-3 left-3">
-                          <span className="bg-yellow-500 text-black px-2 py-1 rounded text-xs flex items-center">
-                            <Star className="w-3 h-3 mr-1" />
-                            Une
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 text-lg">
-                        {event.title}
-                      </h3>
-                      
-                      <div className="space-y-1 mb-4">
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <Calendar className="w-3 h-3 mr-2 text-yellow-500" />
-                          {formatDate(event.date)}
-                        </div>
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <MapPin className="w-3 h-3 mr-2 text-yellow-500" />
-                          {event.location.city}
-                        </div>
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <Users className="w-3 h-3 mr-2 text-yellow-500" />
-                          {event.availableTickets > 0 
-                            ? `${event.availableTickets} places`
-                            : 'Complet'
-                          }
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-yellow-600">
-                          {formatPrice(event.price, event.currency)}
-                        </span>
-                        <Link to={`/events/${event._id}`}>
-                          <Button 
-                            variant={event.availableTickets > 0 ? "primary" : "outline"}
-                            size="sm"
-                          >
-                            {event.availableTickets > 0 ? 'Acheter' : 'Détails'}
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredEvents.slice(0, 8).map((event) => (
+                <EventCard key={event._id} event={event} />
+              ))}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -574,6 +275,50 @@ const Home: React.FC = () => {
             <div className="text-center">
               <div className="text-4xl font-bold text-purple-600 mb-2">50+</div>
               <div className="text-gray-600">Organisateurs partenaires</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pourquoi choisir Kanzey.co */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Pourquoi choisir Kanzey.co ?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              La plateforme de référence pour vos événements au Sénégal
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-yellow-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Paiement rapide</h3>
+              <p className="text-gray-600">
+                Payez en quelques clics avec Orange Money, Free Money, Wave ou Touch Point
+              </p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Ticket className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Billets électroniques</h3>
+              <p className="text-gray-600">
+                Recevez vos billets par email avec code QR pour un accès facile
+              </p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">100% sénégalais</h3>
+              <p className="text-gray-600">
+                Plateforme locale adaptée aux besoins des événements sénégalais
+              </p>
             </div>
           </div>
         </div>

@@ -119,7 +119,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, featured = false }) => {
           </div>
           <div className="flex items-center text-gray-600 text-sm">
             <MapPin className="w-4 h-4 mr-2 text-yellow-500" />
-            {event.location.name}, {event.location.city}
+            {event.location?.name || 'Lieu à définir'}, {event.location?.city || 'Ville'}
           </div>
           <div className="flex items-center text-gray-600 text-sm">
             <Users className="w-4 h-4 mr-2 text-yellow-500" />
@@ -132,7 +132,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, featured = false }) => {
 
         <div className="flex justify-between items-center">
           <div className="text-2xl font-bold text-yellow-600">
-            {formatPrice(event.price, event.currency)}
+            {formatPrice(event.price, event.currency || 'FCFA')}
           </div>
           <Link to={`/events/${event._id}`}>
             <Button 

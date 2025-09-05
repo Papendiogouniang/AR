@@ -133,6 +133,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       isFeatured: isFeatured === 'true' || isFeatured === true,
       organizer: req.user.id,
       createdBy: req.user.id,
+      createdBy: req.user.id,
       status: 'published',
       isActive: true
     };
